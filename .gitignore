@@ -1,17 +1,13 @@
-# Каталог зависимостей Composer
-vendor/
+# Composer vendor directory
+/vendor/
 
-# Lock-файл Composer (можно оставить, если хочешь)
-# composer.lock
+# PHP-specific files
+*.phar
+.php_cs.cache
 
-# Файлы логов
+# Logs
 *.log
 
-# SQLite база (если локальная)
-*.sqlite
-
-# Временные файлы и IDE
-*.bak
-*.tmp
-.idea/
+# Operating System Files
 .DS_Store
+Thumbs.db
