@@ -4,10 +4,16 @@ namespace Eario13\TicTacToe;
 
 class HumanPlayer extends Player
 {
+    // Конструктор наследуется, но можно явно вызвать parent
+    public function __construct(string $symbol, string $name)
+    {
+        parent::__construct($symbol, $name);
+    }
+
     public function makeMove(Board $board): array
     {
         while (true) {
-            echo 'Введите ваш ход (строка,столбец), например, 1,1: ';
+            echo $this->name . ' ('.$this->symbol.'), введите ваш ход (строка,столбец), например, 1,1: ';
             $input = trim(fgets(STDIN));
             $coordinates = array_map('trim', explode(',', $input));
 

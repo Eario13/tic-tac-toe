@@ -4,6 +4,12 @@ namespace Eario13\TicTacToe;
 
 class ComputerPlayer extends Player
 {
+    // Конструктор наследуется, но можно явно вызвать parent
+    public function __construct(string $symbol, string $name)
+    {
+        parent::__construct($symbol, $name);
+    }
+
     public function makeMove(Board $board): array
     {
         $size = $board->getSize();
@@ -21,6 +27,7 @@ class ComputerPlayer extends Player
             throw new \RuntimeException('Нет доступных ходов для компьютера.');
         }
 
+        // Здесь можно реализовать более "умный" AI, но для начала случайный ход подойдет
         return $availableMoves[array_rand($availableMoves)];
     }
 }
