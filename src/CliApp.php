@@ -121,62 +121,57 @@ class CliApp
             return;
         }
 
-        // Определяем ширину столбцов для более читаемого вывода
+        // --- ИЗМЕНЕНИЕ 1: Скорректируем ширину столбцов для лучшего вида ---
         $colWidths = [
-           'ID' => 4,
-           'Размер' => 8,
-           'Игрок X' => 18,       // Увеличено с 15 до 18
-           'Игрок O' => 18,       // Увеличено с 15 до 18
-           'Победитель' => 12,    // Можно оставить 12, или увеличить до 14 для "Компьютер"
-           'Ничья' => 7,
-           'Начало' => 20
+            'ID' => 4,
+            'Размер' => 8,
+            'Игрок X' => 18,
+            'Игрок O' => 18,
+            'Победитель' => 18,
+            'Ничья' => 7,
+            'Начало' => 20,
         ];
 
-        // Строка заголовков
-        $header =
-           str_pad('ID', $colWidths['ID']) . ' | ' .
-           str_pad('Размер', $colWidths['Размер']) . ' | ' .
-           str_pad('Игрок X', $colWidths['Игрок X']) . ' | ' .
-           str_pad('Игрок O', $colWidths['Игрок O']) . ' | ' .
-           str_pad('Победитель', $colWidths['Победитель']) . ' | ' .
-           str_pad('Ничья', $colWidths['Ничья']) . ' | ' .
-           str_pad('Начало', $colWidths['Начало']);
+        // Функция для корректной работы с кириллицей
+        $mbPad = function (
+            string $input,
+            int $length,
+            string $pad_string = ' ',
+            int $pad_type = STR_PAD_RIGHT
+        ): string {
+            $input = (string) $input;
+            $curLen = mb_strlen($input, 'UTF-8');
+            if ($curLen >= $length) {
+                return $input;
+            }
+            return $input . str_repeat($pad_string, $length - $curLen);
+        };
+
+        // Строка заголовков — используем mbPad для выравнивания
+        $header = $mbPad('ID', $colWidths['ID']) . ' | ' .
+            $mbPad('Размер', $colWidths['Размер']) . ' | ' .
+            $mbPad('Игрок X', $colWidths['Игрок X']) . ' | ' .
+            $mbPad('Игрок O', $colWidths['Игрок O']) . ' | ' .
+            $mbPad('Победитель', $colWidths['Победитель']) . ' | ' .
+            $mbPad('Ничья', $colWidths['Ничья']) . ' | ' .
+            $mbPad('Начало', $colWidths['Начало']);
         Streams::line($header);
 
-        // Разделительная линия
-        Streams::line(str_repeat('-', strlen($header)));
+        // Разделительная линия — длину берём с учётом многобайтовых символов
+        $sepLen = mb_strlen($header, 'UTF-8');
+        Streams::line(str_repeat('-', $sepLen));
 
         foreach ($games as $game) {
-            $winner = $game['winner'] ?? '-';
-
-            // Если победитель - Компьютер, нам нужно полное имя для вывода
-            if ($winner === $game['player_x_name'] && $game['player_x_name'] === 'Компьютер') {
-                $winnerDisplay = 'Компьютер (X)';
-            } elseif ($winner === $game['player_o_name'] && $game['player_o_name'] === 'Компьютер') {
-                $winnerDisplay = 'Компьютер (O)';
-            } elseif ($winner === $game['player_x_name']) {
-                $winnerDisplay = $game['player_x_name'] . ' (X)';
-            } elseif ($winner === $game['player_o_name']) {
-                $winnerDisplay = $game['player_o_name'] . ' (O)';
-            } else {
-                $winnerDisplay = $winner; // Для ничьей или других случаев
+            $winnerDisplay = '-';
+            if ($game['winner'] === 'X') {
+                $winnerDisplay = $game['player_x_name'];
+            } elseif ($game['winner'] === 'O') {
+                $winnerDisplay = $game['player_o_name'];
+            } elseif ($game['draw']) {
+                $winnerDisplay = 'Ничья';
             }
 
-
             $draw = $game['draw'] ? 'Да' : 'Нет';
-
-            $mbPad = function (
-                string $input,
-                int $length,
-                string $pad_string = ' ',
-                int $pad_type = STR_PAD_RIGHT
-            ): string {
-                $diff = $length - mb_strlen($input);
-                if ($diff <= 0) {
-                    return $input;
-                }
-                return $input . str_repeat($pad_string, $diff);
-            };
 
             $line = $mbPad((string)$game['id'], $colWidths['ID']) . ' | ' .
                 $mbPad($game['board_size'] . 'x' . $game['board_size'], $colWidths['Размер']) . ' | ' .
@@ -185,6 +180,7 @@ class CliApp
                 $mbPad($winnerDisplay, $colWidths['Победитель']) . ' | ' .
                 $mbPad($draw, $colWidths['Ничья']) . ' | ' .
                 $mbPad($game['start_time'], $colWidths['Начало']);
+
             Streams::line($line);
         }
         Streams::line('');
